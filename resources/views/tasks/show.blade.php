@@ -2,8 +2,6 @@
 
 @section('content')
 
-<!-- ここにページごとのコンテンツを書く -->
-
     <div class="prose ml-4">
         <h2>id = {{ $task->id }} のタスク詳細ページ</h2>
     </div>

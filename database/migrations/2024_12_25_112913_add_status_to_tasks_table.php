@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->string('status',10);
+            $table->string('status')->default('未完了');
         });
     }
 

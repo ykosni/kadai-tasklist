@@ -8,127 +8,139 @@ use App\Models\Task;
 
 class TasksController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * getでtasks/にアクセスされた場合の「一覧表示処理」
-     */
     public function index()
     {
-        //タスク一覧を取得
-        $tasks = Task::all();
+        $data = [];
+        if (\Auth::check()) { // 認証済みの場合
+            // 認証済みユーザーを取得
+            $user = \Auth::user();
+            // ユーザーの投稿の一覧を作成日時の降順で取得
+            $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+                
+            ];
+            return view('tasks.index', $data);
+        }
         
-        //メッセージ一覧ビューでそれを表示
-        //第一引数：表示したいViewを指定。tasks.indexはresources/views/tasks/index.blade.phpを意味する
-        //第二引数：そのViewに渡したいデータの配列を指定。$tasks=Tasks:all();で$messageに入ったデータを渡す。
-        
-        return view('tasks.index', [
-            'tasks' => $tasks,
-            ]);
-    }
+        // トップページを表示させる
+        return view('tasks.index');
 
-    /**
-     * Show the form for creating a new resource.
-     * getでtasks/createにアクセスされた場合の「新規登録画面表示処理」
-     */
+    }
+    
+    
+    public function store(Request $request)
+    {
+        // バリデーション
+        $request->validate([
+            'content' => 'required|max:255',
+        ]);
+        
+        if (\Auth::check()) { // 認証済みの場合
+        
+        // 認証済みユーザー（閲覧者）の投稿として作成（リクエストされた値をもとに作成）
+        $request->user()->tasks()->create([
+            'content' => $request->content,
+             ]);
+        }
+        
+        // トップページを表示させる
+        return view('tasks.index');
+    }
+    
+    
+    
+        public function destroy(string $id)
+    {
+        // idの値で投稿を検索して取得
+        $task = Task::findOrFail($id);
+        
+        // 認証済みユーザー（閲覧者）がその投稿の所有者である場合は投稿を削除
+        if (\Auth::id() === $task->user_id) {
+            $task->delete();
+            return back()
+                ->with('success','Delete Successful');
+        }
+
+        // トップページを表示させる
+        return view('tasks.index');
+    
+    }
+    
+        // getでtasks/id/editにアクセスされた場合の「更新画面表示処理」
+    public function edit($id)
+    {
+        // idの値でメッセージを検索して取得
+        $task = Task::findOrFail($id);
+        
+        // 認証済みユーザー（閲覧者）がその投稿の所有者である場合はメッセージ編集ビューでそれを表示
+        if (\Auth::id() === $task->user_id) {
+            return view('tasks.edit', [
+            'task' => $task,
+             ]);
+        }
+        // トップページを表示させる
+        return view('tasks.index');
+    }
+    
+    
+        // putまたはpatchでmessages/idにアクセスされた場合の「更新処理」
+    public function update(Request $request, $id)
+    {
+        // idの値でメッセージを検索して取得
+        $task = Task::findOrFail($id);
+        
+         // 認証済みユーザー（閲覧者）がその投稿の所有者である場合はタスクを更新
+        if (\Auth::id() === $task->user_id) {
+            $task->content = $request->content;
+            $task->status = $request->status;
+            $task->save();
+        }
+        // トップページを表示させる
+        return view('tasks.index');
+    }
+    
+    
+        // getでmessages/createにアクセスされた場合の「新規登録画面表示処理」
     public function create()
     {
-        $task = new Task;
+        if (\Auth::check()) { // 認証済みの場合
         
+        $task = new Task;
         
         //メッセージ作成ビューを表示
         return view('tasks.create', [
             'task' => $task,
-            ]);
+        ]);
+        }
+        
+        // トップページを表示させる
+        return view('tasks.index');
     }
-
-    /**
-     * Store a newly created resource in storage.
-     * postでtasks/にアクセスされた場合の「新規登録処理」
-     */
-    public function store(Request $request)
-    {
-        //バリデーション
-        $request->validate([
-            'status' => 'required|max:10',
-            'content' => 'required|max:255',
-            ]);
-        
-        //タスクを作成
-        $task = new Task;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
-        
-        //トップページへリダイレクトさせる
-        return redirect('/');
     
-    }
-
-    /**
-     * Display the specified resource.
-     * getでtasks/(任意のid)/にアクセスされた場合の「取得表示処理」
-     */
+    
+    
+         // getでtasks/（任意のid）にアクセスされた場合の「取得表示処理」
     public function show(string $id)
     {
-        //idの値でタスクを検索して取得
+        // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
         
-        //タスク詳細ビューでそれを表示
+         // 認証済みユーザー（閲覧者）がその投稿の所有者である場合はタスクを更新
+        if (\Auth::id() === $task->user_id) {
+
+        // メッセージ詳細ビューでそれを表示
         return view('tasks.show', [
             'task' => $task,
-            ]);
+        ]);
+        }
+        // トップページを表示させる
+        return view('tasks.index');
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     * getでtsasks/(任意のid)/editにアクセスされた場合の「更新画面表示処理」
-     */
-    public function edit(string $id)
-    {
-        //idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
         
-        //タスク編集ビューでそれを表示
-        return view('tasks.edit', [
-            'task' => $task,
-            ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     * putまたはpatchでtasks/(任意のid)/にアクセスされた場合の「更新処理」
-     */
-    public function update(Request $request, string $id)
-    {
-        //バリデーション
-        $request->validate([
-            'status' => 'required|max:10',
-            'content' => 'required|max:255',
-            ]);
-        
-        //idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
-        //タスクを更新
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
-        
-        //トップページへのリダイレクト
-        return redirect('/');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     * deleteでtasks/(任意のid)にアクセスされた場合の「削除処理」
-     */
-    public function destroy(string $id)
-    {
-        //idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
-        //タスクを削除
-        $task->delete();
-        
-        //トップページへのリダイレクト
-        return redirect('/');
-    }
+    
+    
+    
 }
+
