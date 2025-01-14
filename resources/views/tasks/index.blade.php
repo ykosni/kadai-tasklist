@@ -8,6 +8,10 @@
     
         <table class="table table-zebra w-full my-4">
              @if (isset($tasks))
+             
+            {{-- ページネーションのリンク --}}
+                 {{ $tasks->links() }}
+             
              <thead>
                     <tr>
                         <th>id</th>
@@ -58,8 +62,7 @@
             </tbody>
             @endif
 
-        {{-- ページネーションのリンク --}}
-        {{ $tasks->links() }}
+
         
     @else
     

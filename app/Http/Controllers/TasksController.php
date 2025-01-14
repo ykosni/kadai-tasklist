@@ -46,7 +46,7 @@ class TasksController extends Controller
         }
         
         // トップページを表示させる
-        return view('tasks.index');
+        return redirect('/');
     }
     
     
@@ -64,7 +64,7 @@ class TasksController extends Controller
         }
 
         // トップページを表示させる
-        return view('tasks.index');
+        return redirect('/');
     
     }
     
@@ -81,7 +81,7 @@ class TasksController extends Controller
              ]);
         }
         // トップページを表示させる
-        return view('tasks.index');
+        return redirect('/');
     }
     
     
@@ -98,7 +98,7 @@ class TasksController extends Controller
             $task->save();
         }
         // トップページを表示させる
-        return view('tasks.index');
+        return redirect('/');
     }
     
     
@@ -116,7 +116,7 @@ class TasksController extends Controller
         }
         
         // トップページを表示させる
-        return view('tasks.index');
+        return redirect('/');
     }
     
     
@@ -136,7 +136,7 @@ class TasksController extends Controller
         ]);
         }
         // トップページを表示させる
-        return view('tasks.index');
+        return redirect('/');
     }
         
     
